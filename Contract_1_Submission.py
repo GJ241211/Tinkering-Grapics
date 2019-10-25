@@ -13,8 +13,7 @@ WINDOW_WIDTH = 640
 WINDOW_HEIGHT = 480
 
 MAP_WIDTH = 640
-MAP_HEIGHT = 440
-MAP_GAP = int(1 / 4 * MAP_WIDTH)
+MAP_HEIGHT = 480
 
 MAX_NUMBER_OF_TILES = [int(MAP_WIDTH / TILE_WIDTH), int(MAP_HEIGHT / TILE_HEIGHT / 3 * 4)]
 
@@ -29,37 +28,29 @@ MULTIPLIER = 1.4   # Determines how drastic the effects are on tiles
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BROWN = (150, 40, 0)
-DARK_ORANGE = (160, 75, 0)
-DARK_YELLOW = (180, 140, 0)
-ORANGE = (225, 110, 0)
-YELLOW = (240, 240, 50)
-TREE_GREEN = (90, 160, 40)
 GRASS_GREEN = (90, 225, 40)
 TREE_BROWN = (90, 60, 0)
 DARK_GREY = (100, 100, 100)
-DARK_BLUE = (0, 0, 140)
-LIGHT_BLUE = (75, 240, 255)
-LIGHT_GREY = (205, 205, 205)
 
 
-class TileVariation(enum.Enum):
+class TileVariation(enum.Enum):  # maps variations to constants
     NONE = 0
     DESERT = 1
     SNOWFIELD = 2
     FOREST = 3
 
 
-class TileType(enum.Enum):
+class TileType(enum.Enum):  # maps types of tile to constants
     BUILDING = 1
     TERRAIN = 2
 
 
-class Tile:
+class Tile:  # Defines what a tile is and setts up mapping to find attributes
     """Doc String"""
 
     def __init__(self, tile_type, tile_variant, x_position, y_position):
-        self.tile_type = tile_type                                       # building or terrain
-        self.tile_variant = tile_variant                                 # desert, forest, or snowfield
+        self.tile_type = tile_type                                       # asks the tile what type it is
+        self.tile_variant = tile_variant                                 # asks the tile what variant it is
         self.x_position = x_position
         self.y_position = y_position
 
@@ -83,13 +74,13 @@ class Tile:
 
 
 def generate_terrain_tile():
-    # TODO: generate more interesting tiles
+    # Creates a tile and sets background colour
     tile_surface = pygame.Surface((TILE_WIDTH, TILE_HEIGHT))
     tile_surface.fill(TREE_BROWN)
-
+    # Draws draws detail onto the tile
     pygame.draw.rect(tile_surface, GRASS_GREEN, pygame.Rect(0, 0, TILE_WIDTH, ONE_THIRD_UP))
-    pygame.draw.rect(tile_surface, DARK_GREY, pygame.Rect(0, TILE_HEIGHT-ONE_THIRD_UP, TILE_WIDTH, int(ONE_THIRD_UP * 2)))
-
+    pygame.draw.rect(tile_surface, DARK_GREY,
+                     pygame.Rect(0, TILE_HEIGHT-ONE_THIRD_UP, TILE_WIDTH, int(ONE_THIRD_UP * 2)))
     pygame.draw.line(tile_surface, GRASS_GREEN, (0, ONE_THIRD_UP+1), (ONE_THIRD_ACROSS, ONE_THIRD_UP+1), 3)
     pygame.draw.line(tile_surface, DARK_GREY, (HALF_ACROSS, int(ONE_THIRD_UP*2)), (TILE_WIDTH, int(ONE_THIRD_UP*2)), 3)
 
@@ -97,28 +88,24 @@ def generate_terrain_tile():
 
 
 def generate_building_tile():
-    # TODO:  RELATE TO TILE WIDTH AND HEIGHT
+    # Creates a tile and sets background colour
     tile_surface = pygame.Surface((TILE_WIDTH, TILE_HEIGHT))
     tile_surface.fill(BROWN)
-
-    # TODO: experiment with pygame.draw to create more unique tiles //draws designs on tiles
+    # Draws draws detail onto the tile
     pygame.draw.rect(tile_surface, WHITE, pygame.Rect(0, 0, TILE_WIDTH - 1, TILE_HEIGHT - 1), 2)
-
     pygame.draw.line(tile_surface, WHITE, (0, ONE_THIRD_UP), (TILE_WIDTH, ONE_THIRD_UP), 2)
     pygame.draw.line(tile_surface, WHITE, (0, int(ONE_THIRD_UP*2)), (TILE_WIDTH, int(ONE_THIRD_UP*2)), 2)
-
     pygame.draw.line(tile_surface, WHITE, (HALF_ACROSS, 0), (HALF_ACROSS, ONE_THIRD_UP), 2)
     pygame.draw.line(tile_surface, WHITE, (HALF_ACROSS, int(ONE_THIRD_UP*2)), (HALF_ACROSS, TILE_HEIGHT), 2)
-
-    pygame.draw.line(tile_surface, WHITE, (ONE_THIRD_ACROSS, ONE_THIRD_UP), (ONE_THIRD_ACROSS, int(ONE_THIRD_UP*2)), 2)
-    pygame.draw.line(tile_surface, WHITE, (int(ONE_THIRD_ACROSS*2), ONE_THIRD_UP), (int(ONE_THIRD_ACROSS*2), int(ONE_THIRD_UP*2)), 2)
-
-
+    pygame.draw.line(tile_surface, WHITE, (ONE_THIRD_ACROSS, ONE_THIRD_UP), (ONE_THIRD_ACROSS,
+                                                                             int(ONE_THIRD_UP*2)), 2)
+    pygame.draw.line(tile_surface, WHITE, (int(ONE_THIRD_ACROSS*2), ONE_THIRD_UP), (int(ONE_THIRD_ACROSS*2),
+                                                                                    int(ONE_THIRD_UP*2)), 2)
 
     return tile_surface
 
 
-def apply_tile_effect(surface, tile_effect):
+def apply_tile_effect(surface, tile_effect):  # Matches the effect called to the effect to be drawn to screen
     if tile_effect == TileVariation.DESERT:
         return apply_desert_effect(surface)
     elif tile_effect == TileVariation.SNOWFIELD:
@@ -128,26 +115,26 @@ def apply_tile_effect(surface, tile_effect):
 
 
 def apply_desert_effect(surface):
-    """Desert"""
+    """Desert, this effect increase how red a surface is"""
 
     pixel = pygame.Color(0, 0, 0)
     for x in range(surface.get_width()):
-        for y in range(surface.get_height()):
+        for y in range(surface.get_height()):  # Nested for loops to ensure every pixel is changed
 
-            pixel = surface.get_at((x, y))
-            new_red = int(pixel.r * MULTIPLIER)
-            if new_red > 255:
+            pixel = surface.get_at((x, y))  # Finding the pixel at current x, y
+            new_red = int(pixel.r * MULTIPLIER)  # Alters the value of colour being changed
+            if new_red > 255:  # Ensures value isn't beyond maximum value for RGB colours
                 new_red = 255
 
             surface.set_at(
                 (x, y),
-                pygame.Color(new_red, pixel.g, pixel.b)
+                pygame.Color(new_red, pixel.g, pixel.b)  # Changing the colour of the pixel at current x, y
             )
-    return surface
+    return surface  # Once all pixels are changed updates to new surface
 
 
 def apply_snowfield_effect(surface):
-    """Snowfield"""
+    """Snowfield, this effect increase how blue a surface is"""
 
     pixel = pygame.Color(0, 0, 0)
     for x in range(surface.get_width()):
@@ -166,7 +153,7 @@ def apply_snowfield_effect(surface):
 
 
 def apply_forest_effect(surface):
-    """forest"""
+    """forest, this effect increase how green a surface is"""
 
     pixel = pygame.Color(0, 0, 0)
     for x in range(surface.get_width()):
@@ -184,38 +171,23 @@ def apply_forest_effect(surface):
     return surface
 
 
-def draw_tile(tile, canvas=pygame.Surface((1,1))):
+def draw_tile(tile, canvas=pygame.Surface((1, 1))):  # when called will draw the current tile
     canvas.blit(tile.surface, (tile.x_position, tile.y_position))
 
-######################################################## Unused code
-
-def get_randomized_board():
-
-    grid = []
-    random.shuffle(My_tiles)
-
-    my_tiles = []
-    for x in range(MAX_NUMBER_OF_TILES[x, y]):
-        MAX_NUMBER_OF_TILES = [x,y]
-        for y in range(MAX_NUMBER_OF_TILES[x, y]):
-            my_tiles.append(Tile(TileType.BUILDING,
-                                 TileVariation.FOREST, 150, 100))
-    return grid
-
-########################################################### Unused code
 
 def main():
     pygame.init()
 
-    # TODO: randomly generate a set of tiles
+    # makes the fist tile
 
     my_tile = Tile(TileType.BUILDING,
                    TileVariation.NONE,
                    100,
                    100)
 
-    my_tiles = [my_tile]
+    my_tiles = [my_tile]  # Creates an array of tiles adding the fist one to it
 
+    # Adds remaining tiles
     my_tiles.append(Tile(TileType.BUILDING,
                          TileVariation.FOREST, 150, 100))
 
@@ -237,7 +209,7 @@ def main():
     my_tiles.append(Tile(TileType.TERRAIN,
                          TileVariation.SNOWFIELD, 250, 150))
 
-    display_surf = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    display_surf = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))  # Sets up main window
 
     running = True
     while running:
@@ -247,7 +219,7 @@ def main():
 
         display_surf.fill(BLACK)
 
-        for tile in my_tiles:
+        for tile in my_tiles:  # Tells the game to draw the tiles
             draw_tile(tile, display_surf)
 
         pygame.display.update()
